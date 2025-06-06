@@ -1,7 +1,21 @@
 import { Elysia } from "elysia";
+import { ErrorHandler } from "./presentation/plugin/ErrorHandler";
+import { Router } from "./presentation/Router";
+import { container } from "./injection/Container";
 
-const app = new Elysia().get("/", () => "Hello Elysia").listen(3000);
+const start = async () => {
+  try {
+    await container.initialize();
 
-console.log(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
-);
+    const app = new Elysia().use(ErrorHandler).use(Router.setup()).listen(3000);
+
+    console.log(
+      `🦊 Elysia is running at http://${app.server?.hostname}:${app.server?.port}`
+    );
+  } catch (error) {
+    console.error("Failed to start application:", error);
+    process.exit(1);
+  }
+};
+
+start();
