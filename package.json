@@ -1,12 +1,19 @@
 {
-  "name": "elysia-di",
+  "name": "mercury-api",
   "version": "1.0.50",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "elysia": "latest"
+    "@types/bun": "^1.2.15",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/nodemailer": "^6.4.17",
+    "elysia": "latest",
+    "google-auth-library": "^9.15.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.16.0",
+    "nodemailer": "^7.0.3"
   },
   "devDependencies": {
     "bun-types": "latest"
