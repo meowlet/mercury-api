@@ -20,6 +20,8 @@ export interface User {
 export interface Role {
   _id?: ObjectId;
   name: string;
+  description?: string;
+  code: string;
   permissions: Permission[];
   createdAt: Date;
   updatedAt: Date;
