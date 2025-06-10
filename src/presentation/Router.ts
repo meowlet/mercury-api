@@ -12,7 +12,7 @@ export class Router {
     // app.use(this.setupChatRoutes());
 
     // Add more route groups as needed
-    // app.use(this.setupUserRoutes());
+    app.use(this.setupUserRoutes());
     // app.use(this.setupFictionRoutes());
 
     return app;
@@ -23,6 +23,13 @@ export class Router {
       DIToken.AUTH_CONTROLLER
     );
     return authController.routes();
+  }
+
+  private static setupUserRoutes() {
+    const userController = container.resolve<AuthController>(
+      DIToken.USER_CONTROLLER
+    );
+    return userController.routes();
   }
 
   // private static setupChatRoutes() {

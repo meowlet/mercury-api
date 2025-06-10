@@ -31,13 +31,7 @@ const authModels = new Elysia().model({
 
   signIn: t.Object({
     identifier: t.String(),
-    password: t.String({
-      minLength: AuthConstant.PASSWORD_MIN_LENGTH,
-      maxLength: AuthConstant.PASSWORD_MAX_LENGTH,
-      pattern: AuthConstant.PASSWORD_PATTERN,
-      error:
-        "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number",
-    }),
+    password: t.String({}),
   }),
 
   refreshToken: t.Object({
@@ -110,6 +104,10 @@ export class AuthController {
 
           return ResponseFormatter.success({
             user: ResponseFormatter.formatUserResponse(user),
+            tokens: {
+              accessToken,
+              refreshToken,
+            },
           });
         },
         { body: "signIn" }

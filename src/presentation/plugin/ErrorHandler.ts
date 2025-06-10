@@ -119,7 +119,7 @@ function extractValidationDetails(error: any) {
 
 export function ErrorHandler(app: Elysia) {
   return app.error({ AppError }).onError(({ code, error, set }) => {
-    console.error(`Error [${code}]:`, error);
+    // console.error(`Error [${code}]:`, error);
 
     if (error instanceof AppError) {
       set.status = error.statusCode;
