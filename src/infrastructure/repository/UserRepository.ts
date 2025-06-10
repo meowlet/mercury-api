@@ -4,7 +4,7 @@ import { IUserRepository } from "../../domain/repository/IUserRepository";
 import { DatabaseConstant } from "../../common/constant/DatabaseConstant";
 import { DIToken } from "../../common/enum/DIToken";
 
-export class MongoUserRepository implements IUserRepository {
+export class UserRepository implements IUserRepository {
   constructor(private db: Db) {}
 
   async findAll(skip?: number, limit?: number): Promise<User[]> {

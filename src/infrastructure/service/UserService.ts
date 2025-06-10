@@ -1,10 +1,12 @@
 import { IUserService } from "../../domain/service/IUserService";
 import { DIToken } from "../../common/enum/DIToken";
 import { IUserRepository } from "../../domain/repository/IUserRepository";
-import { User } from "../../domain/entity/User";
+import { Action, Resource, User } from "../../domain/entity/User";
 import { ErrorType, throwError } from "../../common/error/AppError";
 import { ObjectId } from "mongodb";
-import { MongoUserRepository } from "../repository/UserRepository";
+import { UserRepository } from "../repository/UserRepository";
+import { IRoleRepository } from "../../domain/repository/IRoleRepository";
+import { t } from "elysia";
 
 export class UserService implements IUserService {
   constructor(private userRepository: IUserRepository) {}
@@ -14,8 +16,8 @@ export class UserService implements IUserService {
   }
 
   async findAll(
-    page: number = 1,
-    limit: number = 50
+    page: number,
+    limit: number
   ): Promise<{ users: User[]; total: number }> {
     const skip = (page - 1) * limit;
     const users = await this.userRepository.findAll(skip, limit);

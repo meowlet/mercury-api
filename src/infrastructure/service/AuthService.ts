@@ -1,4 +1,4 @@
-import { MongoRoleRepository } from "../repository/RoleRepository";
+import { RoleRepository } from "../repository/RoleRepository";
 import { Action, Resource, User } from "../../domain/entity/User";
 import { sign, verify } from "jsonwebtoken";
 import crypto from "crypto";
