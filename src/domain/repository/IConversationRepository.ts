@@ -26,4 +26,8 @@ export interface IConversationRepository {
     conversationId: string,
     lastMessageId?: string
   ): Promise<void>;
+
+  getActiveMembers(conversationId: string): Promise<ConversationMember[]>;
+  deactivateMember(conversationId: string, userId: string): Promise<void>;
+  reactivateMember(conversationId: string, userId: string): Promise<void>;
 }

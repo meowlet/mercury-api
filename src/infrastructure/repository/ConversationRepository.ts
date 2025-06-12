@@ -106,7 +106,9 @@ export class ConversationRepository implements IConversationRepository {
 
     // Create member record
     await this.db
-      .collection<ConversationMember>("conversation_members")
+      .collection<ConversationMember>(
+        DatabaseConstant.CONVERSATION_MEMBER_COLLECTION
+      )
       .insertOne(member as any);
   }
 
@@ -124,7 +126,9 @@ export class ConversationRepository implements IConversationRepository {
 
     // Update member record
     await this.db
-      .collection<ConversationMember>("conversation_members")
+      .collection<ConversationMember>(
+        DatabaseConstant.CONVERSATION_MEMBER_COLLECTION
+      )
       .updateOne(
         {
           conversation: new ObjectId(conversationId),
@@ -145,7 +149,9 @@ export class ConversationRepository implements IConversationRepository {
     role: MemberRole
   ): Promise<void> {
     await this.db
-      .collection<ConversationMember>("conversation_members")
+      .collection<ConversationMember>(
+        DatabaseConstant.CONVERSATION_MEMBER_COLLECTION
+      )
       .updateOne(
         {
           conversation: new ObjectId(conversationId),
@@ -158,7 +164,9 @@ export class ConversationRepository implements IConversationRepository {
 
   async getMembers(conversationId: string): Promise<ConversationMember[]> {
     return this.db
-      .collection<ConversationMember>("conversation_members")
+      .collection<ConversationMember>(
+        DatabaseConstant.CONVERSATION_MEMBER_COLLECTION
+      )
       .find({
         conversation: new ObjectId(conversationId),
         isActive: true,
@@ -182,5 +190,64 @@ export class ConversationRepository implements IConversationRepository {
     await this.db
       .collection<Conversation>(DatabaseConstant.CONVERSATION_COLLECTION)
       .updateOne({ _id: new ObjectId(conversationId) }, { $set: updates });
+  }
+
+  async getActiveMembers(
+    conversationId: string
+  ): Promise<ConversationMember[]> {
+    return this.db
+      .collection<ConversationMember>(
+        DatabaseConstant.CONVERSATION_MEMBER_COLLECTION
+      )
+      .find({
+        conversation: new ObjectId(conversationId),
+        isActive: true,
+      })
+      .toArray();
+  }
+
+  async deactivateMember(
+    conversationId: string,
+    userId: string
+  ): Promise<void> {
+    await this.db
+      .collection<ConversationMember>(
+        DatabaseConstant.CONVERSATION_MEMBER_COLLECTION
+      )
+      .updateOne(
+        {
+          conversation: new ObjectId(conversationId),
+          user: new ObjectId(userId),
+          isActive: true,
+        },
+        {
+          $set: {
+            isActive: false,
+            leftAt: new Date(),
+          },
+        }
+      );
+  }
+
+  async reactivateMember(
+    conversationId: string,
+    userId: string
+  ): Promise<void> {
+    await this.db
+      .collection<ConversationMember>(
+        DatabaseConstant.CONVERSATION_MEMBER_COLLECTION
+      )
+      .updateOne(
+        {
+          conversation: new ObjectId(conversationId),
+          user: new ObjectId(userId),
+          isActive: false,
+        },
+        {
+          isActive: true,
+          $unset: { leftAt: 1 },
+          joinedAt: new Date(),
+        }
+      );
   }
 }

@@ -27,6 +27,11 @@ export class ChatService implements IChatService {
   async createConversation(
     data: CreateConversationData
   ): Promise<Conversation> {
+    const conversationType =
+      data.participants.length > 2
+        ? ConversationType.GROUP
+        : ConversationType.DIRECT;
+
     // Validate participants exist
     for (const participantId of data.participants) {
       const user = await this.userRepository.findById(participantId);
@@ -38,10 +43,7 @@ export class ChatService implements IChatService {
     }
 
     // For direct conversations, check if already exists
-    if (
-      data.type === ConversationType.DIRECT &&
-      data.participants.length === 2
-    ) {
+    if (conversationType === ConversationType.DIRECT) {
       const existing = await this.conversationRepository.findDirectConversation(
         data.participants[0],
         data.participants[1]
@@ -54,8 +56,9 @@ export class ChatService implements IChatService {
     // Create conversation
     const conversation: Conversation = {
       participants: data.participants.map((id) => new ObjectId(id)),
-      type: data.type,
-      title: data.title,
+      type: conversationType,
+      title:
+        conversationType === ConversationType.GROUP ? data.title : undefined,
       description: data.description,
       isActive: true,
       createdBy: new ObjectId(data.createdBy),
@@ -167,7 +170,14 @@ export class ChatService implements IChatService {
     userId: string,
     targetUserId: string
   ): Promise<void> {
-    await this.getConversation(conversationId, userId);
+    const conversation = await this.getConversation(conversationId, userId);
+
+    // Kiểm tra conversation type
+    if (conversation.type === ConversationType.DIRECT) {
+      throwError(ErrorType.FORBIDDEN, {
+        message: "Cannot add members to direct conversation",
+      });
+    }
 
     // Check permissions
     const members = await this.conversationRepository.getMembers(
@@ -190,10 +200,17 @@ export class ChatService implements IChatService {
     }
 
     // Check if already member
-    const isAlreadyMember = members.some(
-      (m) => m.user.toString() === targetUserId && m.isActive
+    const existingMember = members.find(
+      (m) => m.user.toString() === targetUserId
     );
-    if (isAlreadyMember) {
+    if (existingMember) {
+      if (!existingMember.isActive) {
+        await this.conversationRepository.reactivateMember(
+          conversationId,
+          targetUserId
+        );
+        return;
+      }
       throwError(ErrorType.CONFLICT, { message: "User is already a member" });
     }
 
@@ -284,7 +301,13 @@ export class ChatService implements IChatService {
     conversationId: string,
     userId: string
   ): Promise<void> {
-    await this.getConversation(conversationId, userId);
+    const conversation = await this.getConversation(conversationId, userId);
+
+    if (conversation.type === ConversationType.DIRECT) {
+      throwError(ErrorType.FORBIDDEN, {
+        message: "Cannot leave direct conversation",
+      });
+    }
 
     // Check if user is owner
     const members = await this.conversationRepository.getMembers(

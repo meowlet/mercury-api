@@ -34,7 +34,7 @@ export interface Message {
 }
 
 export interface MessageAttachment {
-  id: string;
+  _id: string;
   name: string;
   type: AttachmentType;
   url: string;

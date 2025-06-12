@@ -65,7 +65,7 @@ export interface IChatService {
 }
 
 export interface CreateConversationData {
-  type: ConversationType;
+  // type: ConversationType;
   participants: string[];
   title?: string;
   description?: string;

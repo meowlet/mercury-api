@@ -17,4 +17,5 @@ export class DatabaseConstant {
   // Chat collections
   public static readonly CONVERSATION_COLLECTION = "conversations";
   public static readonly MESSAGE_COLLECTION = "messages";
+  static CONVERSATION_MEMBER_COLLECTION = "conversation_members";
 }
