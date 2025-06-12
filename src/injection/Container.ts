@@ -8,6 +8,8 @@ import { MongoDatabase } from "../infrastructure/database/Database";
 import { UserRepository } from "../infrastructure/repository/UserRepository";
 import { RoleRepository } from "../infrastructure/repository/RoleRepository";
 import { EmailRepository } from "../infrastructure/repository/EmailRepository";
+import { ConversationRepository } from "../infrastructure/repository/ConversationRepository";
+import { MessageRepository } from "../infrastructure/repository/MessageRepository";
 
 // Services
 import { AuthService } from "../infrastructure/service/AuthService";
@@ -18,6 +20,11 @@ import { EmailService } from "../infrastructure/service/EmailService";
 import { AuthController } from "../presentation/controller/AuthController";
 import { UserController } from "../presentation/controller/UserController";
 import { RoleService } from "../infrastructure/service/RoleService";
+import { ChatController } from "../presentation/controller/ChatController";
+import { ChatWebSocket } from "../presentation/ws/ChatWebSocket";
+import { ChatService } from "../infrastructure/service/ChatService";
+
+// WebSockets
 
 class Container extends DIContainer {
   constructor() {
@@ -43,6 +50,20 @@ class Container extends DIContainer {
     );
 
     this.registerClass(DIToken.EMAIL_REPOSITORY, EmailRepository);
+
+    this.register(
+      DIToken.CONVERSATION_REPOSITORY,
+      (database: MongoDatabase) =>
+        new ConversationRepository(database.getDatabase()),
+      { dependencies: [DIToken.DATABASE] }
+    );
+
+    this.register(
+      DIToken.MESSAGE_REPOSITORY,
+      (database: MongoDatabase) =>
+        new MessageRepository(database.getDatabase()),
+      { dependencies: [DIToken.DATABASE] }
+    );
 
     // Services
     this.register(
@@ -76,6 +97,19 @@ class Container extends DIContainer {
       }
     );
 
+    this.register(
+      DIToken.CHAT_SERVICE,
+      (conversationRepo: any, messageRepo: any, userRepo: any) =>
+        new ChatService(conversationRepo, messageRepo, userRepo),
+      {
+        dependencies: [
+          DIToken.CONVERSATION_REPOSITORY,
+          DIToken.MESSAGE_REPOSITORY,
+          DIToken.USER_REPOSITORY,
+        ],
+      }
+    );
+
     // Controllers
     this.register(
       DIToken.AUTH_CONTROLLER,
@@ -90,6 +124,19 @@ class Container extends DIContainer {
       {
         dependencies: [DIToken.USER_SERVICE, DIToken.ROLE_SERVICE],
       }
+    );
+
+    this.register(
+      DIToken.CHAT_CONTROLLER,
+      (chatService: any) => new ChatController(chatService),
+      { dependencies: [DIToken.CHAT_SERVICE] }
+    );
+
+    // Chat WebSocket
+    this.register(
+      DIToken.CHAT_WEBSOCKET,
+      (chatService: any) => new ChatWebSocket(chatService),
+      { dependencies: [DIToken.CHAT_SERVICE] }
     );
   }
 

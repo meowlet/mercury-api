@@ -26,6 +26,9 @@ export enum DIToken {
   LOGGER = "LOGGER",
   CONFIG = "CONFIG",
 
+  // Websocket
+  CHAT_WEBSOCKET = "CHAT_WEBSOCKET",
+
   // External clients
   GOOGLE_CLIENT = "GOOGLE_CLIENT",
 }
