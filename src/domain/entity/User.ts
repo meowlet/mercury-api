@@ -18,7 +18,7 @@ export interface User {
 }
 
 export interface Role {
-  _id?: ObjectId;
+  _id?: ObjectId | string;
   name: string;
   description?: string;
   code: string;
@@ -36,15 +36,6 @@ export enum Resource {
   USER = "user",
   ROLE = "role",
   PERMISSION = "permission",
-  FICTION = "fiction",
-  STATISTIC = "statistic",
-  TAG = "tag",
-  COMMENT = "comment",
-  RATING = "rating",
-  CHAPTER = "chapter",
-  FORUM = "forum",
-  POST = "post",
-  NOTIFICATION = "notification",
 }
 
 export enum Action {
