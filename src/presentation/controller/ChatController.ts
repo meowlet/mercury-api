@@ -7,11 +7,12 @@ import {
   MessageType,
   MemberRole,
 } from "../../domain/entity/Chat";
+import { ObjectId } from "mongodb";
+import { ErrorType } from "../../common/error/AppError";
 
 const ChatModels = new Elysia().model({
   createConversation: t.Object({
-    type: t.Enum(ConversationType),
-    participants: t.Array(t.String()),
+    participants: t.Array(t.String(), { minItems: 2, maxItems: 100 }),
     title: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
     description: t.Optional(t.String({ maxLength: 500 })),
   }),
@@ -109,6 +110,7 @@ export class ChatController {
             params.id,
             userId
           );
+
           return ResponseFormatter.success({ conversation });
         })
 

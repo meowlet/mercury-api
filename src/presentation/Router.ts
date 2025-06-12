@@ -13,6 +13,7 @@ export class Router {
     app.use(this.setupAuthRoutes());
     app.use(this.setupUserRoutes());
     app.use(this.setupChatRoutes()); // Add chat routes
+    app.use(this.setupMeRoutes()); // Add me routes
     app.use(this.setupChatWebSocket()); // Add WebSocket
 
     return app;
@@ -44,5 +45,12 @@ export class Router {
       DIToken.CHAT_WEBSOCKET
     );
     return chatWebSocket.routes();
+  }
+
+  private static setupMeRoutes() {
+    const meController = container.resolve<AuthController>(
+      DIToken.ME_CONTROLLER
+    );
+    return meController.routes();
   }
 }

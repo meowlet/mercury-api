@@ -23,6 +23,7 @@ import { RoleService } from "../infrastructure/service/RoleService";
 import { ChatController } from "../presentation/controller/ChatController";
 import { ChatWebSocket } from "../presentation/ws/ChatWebSocket";
 import { ChatService } from "../infrastructure/service/ChatService";
+import { MeController } from "../presentation/controller/MeController";
 
 // WebSockets
 
@@ -121,6 +122,15 @@ class Container extends DIContainer {
       DIToken.USER_CONTROLLER,
       (userService: any, roleService: any) =>
         new UserController(userService, roleService),
+      {
+        dependencies: [DIToken.USER_SERVICE, DIToken.ROLE_SERVICE],
+      }
+    );
+
+    this.register(
+      DIToken.ME_CONTROLLER,
+      (userService: any, roleService: any) =>
+        new MeController(userService, roleService),
       {
         dependencies: [DIToken.USER_SERVICE, DIToken.ROLE_SERVICE],
       }
