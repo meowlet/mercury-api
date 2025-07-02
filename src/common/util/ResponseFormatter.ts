@@ -26,6 +26,7 @@ export class ResponseFormatter {
     return {
       id: user._id,
       username: user.username,
+      fullName: user.fullName ? user.fullName : user.username,
       email: user.email,
       isPremium: user.isPremium,
     };

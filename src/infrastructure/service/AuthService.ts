@@ -68,9 +68,10 @@ export class AuthService implements IAuthService {
     // Check password
     const isPasswordValid = await Bun.password.verify(password, user.password);
     if (!isPasswordValid) {
-      throwError(ErrorType.INVALID_CREDENTIALS, {
-        reason: "password_mismatch",
-      });
+      throwErrorWithMessage(
+        ErrorType.INVALID_CREDENTIALS,
+        "Password is incorrect"
+      );
     }
 
     // Generate tokens
