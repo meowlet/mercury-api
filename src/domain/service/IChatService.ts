@@ -5,6 +5,7 @@ import {
   ConversationType,
   MessageType,
   MemberRole,
+  MessageAttachment,
 } from "../entity/Chat";
 
 export interface IChatService {
@@ -78,5 +79,5 @@ export interface SendMessageData {
   content: string;
   type: MessageType;
   replyTo?: string;
-  attachments?: File[];
+  attachments?: MessageAttachment[];
 }

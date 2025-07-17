@@ -3,6 +3,7 @@ import { bearer } from "@elysiajs/bearer";
 import { container } from "../../injection/Container";
 import { DIToken } from "../../common/enum/DIToken";
 import { IAuthService } from "../../domain/service/IAuthService";
+import { IUserService } from "../../domain/service/IUserService";
 import { ErrorType, throwError } from "../../common/error/AppError";
 
 export const AuthMiddleware = new Elysia({ name: "auth-middleware" })
@@ -23,6 +24,10 @@ export const AuthMiddleware = new Elysia({ name: "auth-middleware" })
         message: "Invalid or expired token",
       });
     }
+
+    // Update lastSeen for authenticated user
+    const userService = container.resolve<IUserService>(DIToken.USER_SERVICE);
+    await userService.updateLastSeen(payload.sub);
 
     return {
       userId: payload.sub,

@@ -14,11 +14,13 @@ import { DIToken } from "../../common/enum/DIToken";
 import { IAuthService } from "../../domain/service/IAuthService";
 import { IUserRepository } from "../../domain/repository/IUserRepository";
 import { IEmailService } from "../../domain/service/IEmailService";
+import { IUserService } from "../../domain/service/IUserService";
 
 export class AuthService implements IAuthService {
   constructor(
     private userRepository: IUserRepository,
-    private emailService: IEmailService
+    private emailService: IEmailService,
+    private userService: IUserService
   ) {}
 
   async signUp(
@@ -84,11 +86,22 @@ export class AuthService implements IAuthService {
       refreshToken
     );
 
+    // Set user online
+    await this.userService.setUserOnline(user._id!.toString());
+
     return {
       user,
       accessToken,
       refreshToken,
     };
+  }
+
+  async signOut(userId: string): Promise<void> {
+    // Remove refresh token
+    await this.userRepository.removeRefreshToken(userId);
+
+    // Set user offline
+    await this.userService.setUserOffline(userId);
   }
 
   async refreshToken(
@@ -112,6 +125,8 @@ export class AuthService implements IAuthService {
     // Generate new tokens
     const accessToken = this.generateAccessToken(userId);
     const refreshToken = this.generateRefreshToken(userId);
+
+    console.log(accessToken, refreshToken);
 
     // Update refresh token
     await this.userRepository.updateRefreshToken(userId, refreshToken);

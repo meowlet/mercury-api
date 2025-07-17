@@ -1,11 +1,13 @@
 import { Elysia, t } from "elysia";
 import { IChatService } from "../../domain/service/IChatService";
+import { IFileUploadService } from "../../domain/service/IFileUploadService";
 import { ResponseFormatter } from "../../common/util/ResponseFormatter";
 import { AuthMiddleware } from "../middleware/AuthMiddleware";
 import {
   ConversationType,
   MessageType,
   MemberRole,
+  AttachmentType,
 } from "../../domain/entity/Chat";
 import { ObjectId } from "mongodb";
 import { ErrorType } from "../../common/error/AppError";
@@ -23,9 +25,29 @@ const ChatModels = new Elysia().model({
   }),
 
   sendMessage: t.Object({
-    content: t.String({ minLength: 1, maxLength: 5000 }),
+    content: t.String({ maxLength: 5000 }),
     type: t.Enum(MessageType, { default: MessageType.TEXT }),
     replyTo: t.Optional(t.String()),
+    attachments: t.Optional(
+      t.Array(
+        t.Object({
+          name: t.String(),
+          url: t.String(),
+          size: t.Number(),
+          mimeType: t.String(),
+          type: t.Enum(AttachmentType),
+        })
+      )
+    ),
+  }),
+
+  sendMessageWithFile: t.Object({
+    content: t.Optional(t.String({ maxLength: 5000 })),
+    type: t.Enum(MessageType, { default: MessageType.FILE }),
+    replyTo: t.Optional(t.String()),
+    file: t.File({
+      maxSize: "10m",
+    }),
   }),
 
   editMessage: t.Object({
@@ -53,7 +75,10 @@ const ChatModels = new Elysia().model({
 });
 
 export class ChatController {
-  constructor(private chatService: IChatService) {}
+  constructor(
+    private chatService: IChatService,
+    private fileUploadService?: IFileUploadService
+  ) {}
 
   public routes() {
     return (
@@ -238,6 +263,74 @@ export class ChatController {
           },
           {
             body: "sendMessage",
+          }
+        )
+
+        .post(
+          "/conversations/:id/messages/file",
+          async ({ params, body, userId, set }) => {
+            try {
+              if (!this.fileUploadService) {
+                set.status = 500;
+                return ResponseFormatter.error(
+                  "File upload service not available",
+                  "SERVICE_UNAVAILABLE"
+                );
+              }
+
+              const { file, content, type, replyTo } = body;
+
+              // Upload file
+              const filePath = await this.fileUploadService.uploadFile(
+                file,
+                userId,
+                "attachment"
+              );
+
+              // Determine attachment type based on mime type
+              let attachmentType = AttachmentType.DOCUMENT;
+              if (file.type.startsWith("image/")) {
+                attachmentType = AttachmentType.IMAGE;
+              } else if (file.type.startsWith("video/")) {
+                attachmentType = AttachmentType.VIDEO;
+              } else if (file.type.startsWith("audio/")) {
+                attachmentType = AttachmentType.AUDIO;
+              }
+
+              // Create attachment object
+              const attachment = {
+                _id: crypto.randomUUID(),
+                name: file.name,
+                type: attachmentType,
+                url: this.fileUploadService.getFileUrl(filePath),
+                size: file.size,
+                mimeType: file.type,
+              };
+
+              // Send message with attachment
+              const message = await this.chatService.sendMessage({
+                conversationId: params.id,
+                senderId: userId,
+                content: content || `📎 ${file.name}`,
+                type: type,
+                replyTo,
+                attachments: [attachment],
+              });
+
+              return ResponseFormatter.success(
+                { message },
+                "Message with file sent successfully"
+              );
+            } catch (error: any) {
+              set.status = error.statusCode || 500;
+              return ResponseFormatter.error(
+                error.message,
+                error.type || "FILE_MESSAGE_ERROR"
+              );
+            }
+          },
+          {
+            body: "sendMessageWithFile",
           }
         )
 

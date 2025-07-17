@@ -9,4 +9,8 @@ export interface IUserService {
   createUser(userData: Partial<User>): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User>;
   deleteUser(id: string): Promise<void>;
+  setUserOnline(userId: string): Promise<void>;
+  setUserOffline(userId: string): Promise<void>;
+  updateLastSeen(userId: string): Promise<void>;
+  getOnlineUsers(): Promise<User[]>;
 }

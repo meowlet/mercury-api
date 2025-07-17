@@ -4,6 +4,9 @@ import { container } from "../injection/Container";
 import { DIToken } from "../common/enum/DIToken";
 import { ChatController } from "./controller/ChatController";
 import { ChatWebSocket } from "./ws/ChatWebSocket";
+import { MeController } from "./controller/MeController";
+import { UserController } from "./controller/UserController";
+import { UploadController } from "./controller/UploadController";
 
 export class Router {
   static setup(): Elysia {
@@ -14,6 +17,7 @@ export class Router {
     app.use(this.setupUserRoutes());
     app.use(this.setupChatRoutes()); // Add chat routes
     app.use(this.setupMeRoutes()); // Add me routes
+    app.use(this.setupUploadRoutes()); // Add upload routes
     app.use(this.setupChatWebSocket()); // Add WebSocket
 
     return app;
@@ -27,7 +31,7 @@ export class Router {
   }
 
   private static setupUserRoutes() {
-    const userController = container.resolve<AuthController>(
+    const userController = container.resolve<UserController>(
       DIToken.USER_CONTROLLER
     );
     return userController.routes();
@@ -48,9 +52,14 @@ export class Router {
   }
 
   private static setupMeRoutes() {
-    const meController = container.resolve<AuthController>(
-      DIToken.ME_CONTROLLER
-    );
+    const meController = container.resolve<MeController>(DIToken.ME_CONTROLLER);
     return meController.routes();
+  }
+
+  private static setupUploadRoutes() {
+    const uploadController = container.resolve<UploadController>(
+      DIToken.UPLOAD_CONTROLLER
+    );
+    return uploadController.routes();
   }
 }

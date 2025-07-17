@@ -59,6 +59,35 @@ export class UserService implements IUserService {
       throwError(ErrorType.NOT_FOUND);
     }
 
+    // Check if username is being updated and already exists
+    if (updates.username && updates.username !== user.username) {
+      const existingUserWithUsername = await this.userRepository.findByUsername(
+        updates.username
+      );
+      if (
+        existingUserWithUsername &&
+        existingUserWithUsername._id?.toString() !== id
+      ) {
+        throwError(ErrorType.USER_EXISTS);
+      }
+    }
+
+    // Check if email is being updated and already exists
+    if (updates.email && updates.email !== user.email) {
+      const existingUserWithEmail = await this.userRepository.findByEmail(
+        updates.email
+      );
+      if (
+        existingUserWithEmail &&
+        existingUserWithEmail._id?.toString() !== id
+      ) {
+        throwError(ErrorType.USER_EXISTS);
+      }
+    }
+
+    // Update the updatedAt field
+    updates.updatedAt = new Date();
+
     return this.userRepository.update(id, updates);
   }
 
@@ -70,5 +99,32 @@ export class UserService implements IUserService {
     }
 
     await this.userRepository.delete(id);
+  }
+
+  async setUserOnline(userId: string): Promise<void> {
+    await this.userRepository.update(userId, {
+      isOnline: true,
+      lastSeen: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  async setUserOffline(userId: string): Promise<void> {
+    await this.userRepository.update(userId, {
+      isOnline: false,
+      lastSeen: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  async updateLastSeen(userId: string): Promise<void> {
+    await this.userRepository.update(userId, {
+      lastSeen: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  async getOnlineUsers(): Promise<User[]> {
+    return this.userRepository.findByStatus(true);
   }
 }

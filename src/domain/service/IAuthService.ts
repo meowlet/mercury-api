@@ -7,6 +7,7 @@ export interface IAuthService {
     identifier: string,
     password: string
   ): Promise<{ user: User; accessToken: string; refreshToken: string }>;
+  signOut(userId: string): Promise<void>;
   refreshToken(
     token: string
   ): Promise<{ accessToken: string; refreshToken: string }>;

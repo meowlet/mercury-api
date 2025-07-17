@@ -4,6 +4,7 @@ import { DIToken } from "../../common/enum/DIToken";
 import { ResponseFormatter } from "../../common/util/ResponseFormatter";
 import { ConfigConstant } from "../../common/constant/ConfigConstant";
 import { AuthConstant } from "../../common/constant/AuthConstant";
+import { ref } from "process";
 
 const authModels = new Elysia().model({
   signUp: t.Object({
@@ -118,6 +119,8 @@ export class AuthController {
           const { token } = body;
           const tokens = await this.authService.refreshToken(token);
 
+          console.log(tokens);
+
           return ResponseFormatter.success(tokens);
         },
         { body: "refreshToken" }
@@ -166,6 +169,28 @@ export class AuthController {
           );
         },
         { body: "resetPassword" }
-      );
+      )
+      .post("/sign-out", async ({ headers, cookie }) => {
+        // Get user ID from token
+        const token =
+          headers.authorization?.replace("Bearer ", "") ||
+          cookie.accessToken.value;
+        if (!token) {
+          return ResponseFormatter.error("No token provided", "UNAUTHORIZED");
+        }
+
+        const payload = await this.authService.verifyToken(token);
+        if (!payload || !payload.sub) {
+          return ResponseFormatter.error("Invalid token", "UNAUTHORIZED");
+        }
+
+        await this.authService.signOut(payload.sub);
+
+        // Clear cookies
+        cookie.accessToken.remove();
+        cookie.refreshToken.remove();
+
+        return ResponseFormatter.success(null, "Signed out successfully");
+      });
   }
 }

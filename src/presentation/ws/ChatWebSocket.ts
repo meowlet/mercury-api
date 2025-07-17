@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 import { IChatService } from "../../domain/service/IChatService";
+import { IUserService } from "../../domain/service/IUserService";
 import { Message } from "../../domain/entity/Chat";
 import { AuthMiddleware } from "../middleware/AuthMiddleware";
 import jwt from "jsonwebtoken";
@@ -21,7 +22,10 @@ export class ChatWebSocket {
   private connections = new Map<string, Set<any>>(); // userId -> Set of WebSocket connections
   private conversationUsers = new Map<string, Set<string>>(); // conversationId -> Set of userIds
 
-  constructor(private chatService: IChatService) {}
+  constructor(
+    private chatService: IChatService,
+    private userService: IUserService
+  ) {}
 
   public routes() {
     return new Elysia().use(AuthMiddleware).ws("/chat/ws", {
@@ -31,9 +35,11 @@ export class ChatWebSocket {
         data: t.Any(),
       }),
 
-      open: (ws) => {
-        // Extract user info from token (you'd need to implement auth for WebSocket)
+      open: async (ws) => {
         const { userId } = ws.data;
+
+        // Clean up any dead connections first
+        this.cleanupDeadConnections(userId);
 
         // Add to connections map
         if (!this.connections.has(userId)) {
@@ -41,7 +47,14 @@ export class ChatWebSocket {
         }
         this.connections.get(userId)!.add(ws);
 
-        console.log(`User ${userId} connected to chat WebSocket`);
+        // Set user online
+        await this.userService.setUserOnline(userId);
+
+        console.log(
+          `User ${userId} connected to chat WebSocket. Total connections: ${
+            this.connections.get(userId)?.size || 0
+          }`
+        );
       },
 
       message: async (ws, message) => {
@@ -82,7 +95,7 @@ export class ChatWebSocket {
         }
       },
 
-      close: (ws) => {
+      close: async (ws) => {
         const { userId, conversationId } = ws.data as WebSocketData;
 
         if (userId) {
@@ -90,8 +103,14 @@ export class ChatWebSocket {
           const userConnections = this.connections.get(userId);
           if (userConnections) {
             userConnections.delete(ws);
+            console.log(
+              `Connection removed. Remaining connections for user ${userId}: ${userConnections.size}`
+            );
+
             if (userConnections.size === 0) {
               this.connections.delete(userId);
+              // Set user offline if no more connections
+              await this.userService.setUserOffline(userId);
             }
           }
 
@@ -111,6 +130,33 @@ export class ChatWebSocket {
         }
       },
     });
+  }
+
+  // Add this method to clean up dead connections
+  private cleanupDeadConnections(userId: string) {
+    const userConnections = this.connections.get(userId);
+    if (userConnections) {
+      const deadConnections = new Set();
+
+      for (const ws of userConnections) {
+        // Check if WebSocket is still alive
+        if (
+          ws.readyState === WebSocket.CLOSED ||
+          ws.readyState === WebSocket.CLOSING
+        ) {
+          deadConnections.add(ws);
+        }
+      }
+
+      // Remove dead connections
+      for (const deadWs of deadConnections) {
+        userConnections.delete(deadWs);
+      }
+
+      console.log(
+        `Cleaned up ${deadConnections.size} dead connections for user ${userId}`
+      );
+    }
   }
 
   private async handleJoinConversation(
@@ -284,38 +330,39 @@ export class ChatWebSocket {
 
       const userConnections = this.connections.get(userId);
       if (userConnections) {
+        const deadConnections = new Set();
+
         for (const ws of userConnections) {
           try {
-            ws.send(JSON.stringify(event));
+            // Check if connection is still alive before sending
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify(event));
+            } else {
+              deadConnections.add(ws);
+            }
           } catch (error) {
             console.error(`Failed to send message to user ${userId}:`, error);
-            // Remove dead connection
-            userConnections.delete(ws);
+            deadConnections.add(ws);
           }
+        }
+
+        // Remove dead connections
+        for (const deadWs of deadConnections) {
+          userConnections.delete(deadWs);
         }
       }
     }
   }
 
-  private extractUserFromToken(ws: any): string | null {
-    try {
-      // Lấy headers từ WebSocket handshake
-      const headers = ws.data.header;
-      const authHeader = headers?.authorization || headers?.Authorization;
-
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return null;
+  // Add periodic cleanup method (optional)
+  public startPeriodicCleanup() {
+    setInterval(() => {
+      for (const [userId, connections] of this.connections) {
+        this.cleanupDeadConnections(userId);
+        if (connections.size === 0) {
+          this.connections.delete(userId);
+        }
       }
-
-      const token = authHeader.substring(7); // Remove "Bearer "
-
-      // Verify và decode JWT token
-      const decoded = jwt.verify(token, AuthConstant.JWT_SECRET!);
-
-      return decoded.sub as string;
-    } catch (error) {
-      console.error("Token verification failed:", error);
-      return null;
-    }
+    }, 60000); // Clean up every minute
   }
 }

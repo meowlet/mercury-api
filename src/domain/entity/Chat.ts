@@ -9,7 +9,7 @@ export interface Conversation {
   description?: string;
   avatar?: string;
   isActive: boolean;
-  lastMessage?: ObjectId | Message | string;
+  lastMessage?: string; // Chỉ là string thay vì ObjectId | Message | string
   lastActivity: Date;
   createdBy: ObjectId;
   createdAt: Date;
@@ -34,7 +34,7 @@ export interface Message {
 }
 
 export interface MessageAttachment {
-  _id: string;
+  _id?: string | ObjectId;
   name: string;
   type: AttachmentType;
   url: string;

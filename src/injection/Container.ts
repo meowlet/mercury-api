@@ -15,10 +15,12 @@ import { MessageRepository } from "../infrastructure/repository/MessageRepositor
 import { AuthService } from "../infrastructure/service/AuthService";
 import { UserService } from "../infrastructure/service/UserService";
 import { EmailService } from "../infrastructure/service/EmailService";
+import { FileUploadService } from "../infrastructure/service/FileUploadService";
 
 // Controllers
 import { AuthController } from "../presentation/controller/AuthController";
 import { UserController } from "../presentation/controller/UserController";
+import { UploadController } from "../presentation/controller/UploadController";
 import { RoleService } from "../infrastructure/service/RoleService";
 import { ChatController } from "../presentation/controller/ChatController";
 import { ChatWebSocket } from "../presentation/ws/ChatWebSocket";
@@ -90,10 +92,14 @@ class Container extends DIContainer {
 
     this.register(
       DIToken.AUTH_SERVICE,
-      (userRepo: any, emailService: any) =>
-        new AuthService(userRepo, emailService),
+      (userRepo: any, emailService: any, userService: any) =>
+        new AuthService(userRepo, emailService, userService),
       {
-        dependencies: [DIToken.USER_REPOSITORY, DIToken.EMAIL_SERVICE],
+        dependencies: [
+          DIToken.USER_REPOSITORY,
+          DIToken.EMAIL_SERVICE,
+          DIToken.USER_SERVICE,
+        ],
         singleton: false, // Tạo instance mới cho mỗi request
       }
     );
@@ -110,6 +116,9 @@ class Container extends DIContainer {
         ],
       }
     );
+
+    // File Upload Service
+    this.registerClass(DIToken.FILE_UPLOAD_SERVICE, FileUploadService);
 
     // Controllers
     this.register(
@@ -129,8 +138,7 @@ class Container extends DIContainer {
 
     this.register(
       DIToken.ME_CONTROLLER,
-      (userService: any, roleService: any) =>
-        new MeController(userService, roleService),
+      (userService: any) => new MeController(userService),
       {
         dependencies: [DIToken.USER_SERVICE, DIToken.ROLE_SERVICE],
       }
@@ -138,15 +146,25 @@ class Container extends DIContainer {
 
     this.register(
       DIToken.CHAT_CONTROLLER,
-      (chatService: any) => new ChatController(chatService),
-      { dependencies: [DIToken.CHAT_SERVICE] }
+      (chatService: any, fileUploadService: any) =>
+        new ChatController(chatService, fileUploadService),
+      { dependencies: [DIToken.CHAT_SERVICE, DIToken.FILE_UPLOAD_SERVICE] }
     );
 
     // Chat WebSocket
     this.register(
       DIToken.CHAT_WEBSOCKET,
-      (chatService: any) => new ChatWebSocket(chatService),
-      { dependencies: [DIToken.CHAT_SERVICE] }
+      (chatService: any, userService: any) =>
+        new ChatWebSocket(chatService, userService),
+      { dependencies: [DIToken.CHAT_SERVICE, DIToken.USER_SERVICE] }
+    );
+
+    // Upload Controller
+    this.register(
+      DIToken.UPLOAD_CONTROLLER,
+      (fileUploadService: any, userService: any) =>
+        new UploadController(fileUploadService, userService),
+      { dependencies: [DIToken.FILE_UPLOAD_SERVICE, DIToken.USER_SERVICE] }
     );
   }
 

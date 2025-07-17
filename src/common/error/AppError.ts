@@ -13,6 +13,11 @@ export const ErrorType = {
   CONFLICT: "CONFLICT",
   VALIDATION_ERROR: "VALIDATION_ERROR",
   INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
+
+  // File upload errors
+  INVALID_FILE_TYPE: "INVALID_FILE_TYPE",
+  FILE_TOO_LARGE: "FILE_TOO_LARGE",
+  FILE_UPLOAD_FAILED: "FILE_UPLOAD_FAILED",
 } as const;
 
 export type ErrorType = (typeof ErrorType)[keyof typeof ErrorType];
@@ -31,6 +36,9 @@ export const errorStatusMap: Record<ErrorType, number> = {
   CONFLICT: 409,
   VALIDATION_ERROR: 400,
   INTERNAL_SERVER_ERROR: 500,
+  INVALID_FILE_TYPE: 400,
+  FILE_TOO_LARGE: 413,
+  FILE_UPLOAD_FAILED: 500,
 };
 
 export const defaultErrorMessages: Record<ErrorType, string> = {
@@ -47,6 +55,9 @@ export const defaultErrorMessages: Record<ErrorType, string> = {
   CONFLICT: "Resource conflict",
   VALIDATION_ERROR: "Validation failed",
   INTERNAL_SERVER_ERROR: "Internal server error",
+  INVALID_FILE_TYPE: "Invalid file type",
+  FILE_TOO_LARGE: "File size too large",
+  FILE_UPLOAD_FAILED: "File upload failed",
 };
 
 export interface ErrorResponse {

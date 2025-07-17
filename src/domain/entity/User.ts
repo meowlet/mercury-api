@@ -6,6 +6,7 @@ export interface User {
   email: string;
   password?: string;
   fullName?: string;
+  avatar?: string; // URL hoặc path đến avatar
   isPremium: boolean;
   premiumExpiryDate?: Date;
   role?: ObjectId | Role | string;
@@ -13,6 +14,8 @@ export interface User {
   refreshToken?: string;
   resetPasswordToken?: string;
   resetPasswordExpiry?: Date;
+  isOnline?: boolean;
+  lastSeen?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

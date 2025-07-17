@@ -8,6 +8,7 @@ export interface IUserRepository {
   findByEmail(email: string): Promise<User | null>;
   findByGoogleId(googleId: string): Promise<User | null>;
   findByResetToken(token: string): Promise<User | null>;
+  findByStatus(isOnline: boolean): Promise<User[]>;
   create(user: User): Promise<User>;
   update(id: string, updates: Partial<User>): Promise<User>;
   delete(id: string): Promise<void>;

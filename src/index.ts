@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
+import { staticPlugin } from "@elysiajs/static";
 import { ErrorHandler } from "./presentation/plugin/ErrorHandler";
 import { Router } from "./presentation/Router";
 import { container } from "./injection/Container";
@@ -10,6 +11,12 @@ const start = async () => {
 
     const app = new Elysia()
       .use(cors())
+      .use(
+        staticPlugin({
+          assets: "uploads",
+          prefix: "/uploads",
+        })
+      )
       .use(ErrorHandler)
       .use(Router.setup())
       .listen(3000);

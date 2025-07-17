@@ -176,15 +176,15 @@ export class ConversationRepository implements IConversationRepository {
 
   async updateLastActivity(
     conversationId: string,
-    lastMessageId?: string
+    lastMessageContent?: string
   ): Promise<void> {
     const updates: any = {
       lastActivity: new Date(),
       updatedAt: new Date(),
     };
 
-    if (lastMessageId) {
-      updates.lastMessage = new ObjectId(lastMessageId);
+    if (lastMessageContent) {
+      updates.lastMessage = lastMessageContent;
     }
 
     await this.db

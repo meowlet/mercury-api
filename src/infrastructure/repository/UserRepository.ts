@@ -52,6 +52,13 @@ export class UserRepository implements IUserRepository {
       .findOne({ resetPasswordToken: token });
   }
 
+  async findByStatus(isOnline: boolean): Promise<User[]> {
+    return this.db
+      .collection<User>(DatabaseConstant.USER_COLLECTION)
+      .find({ isOnline: isOnline })
+      .toArray();
+  }
+
   async create(user: User): Promise<User> {
     const now = new Date();
     user.createdAt = now;

@@ -8,14 +8,16 @@
   "dependencies": {
     "@elysiajs/bearer": "^1.3.0",
     "@elysiajs/cors": "^1.3.3",
-    "@types/bun": "^1.2.15",
-    "@types/jsonwebtoken": "^9.0.9",
+    "@elysiajs/static": "^1.3.0",
+    "@types/bun": "^1.2.18",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/nodemailer": "^6.4.17",
     "elysia": "latest",
     "google-auth-library": "^9.15.1",
     "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.16.0",
-    "nodemailer": "^7.0.3"
+    "mongodb": "^6.17.0",
+    "nodemailer": "^7.0.5",
+    "sharp": "^0.34.3"
   },
   "devDependencies": {
     "bun-types": "latest"

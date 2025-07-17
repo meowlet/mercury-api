@@ -13,6 +13,7 @@ import {
   ConversationType,
   MessageType,
   MemberRole,
+  AttachmentType,
 } from "../../domain/entity/Chat";
 import { ErrorType, throwError } from "../../common/error/AppError";
 import { ObjectId } from "mongodb";
@@ -23,6 +24,36 @@ export class ChatService implements IChatService {
     private messageRepository: IMessageRepository,
     private userRepository: IUserRepository
   ) {}
+
+  private generateLastMessageText(message: Message): string {
+    switch (message.type) {
+      case MessageType.TEXT:
+        return message.content;
+      case MessageType.IMAGE:
+        return "📷 Sent a photo";
+      case MessageType.FILE:
+        if (message.attachments && message.attachments.length > 0) {
+          const attachment = message.attachments[0];
+          switch (attachment.type) {
+            case AttachmentType.IMAGE:
+              return "📷 Sent a photo";
+            case AttachmentType.VIDEO:
+              return "🎥 Sent a video";
+            case AttachmentType.AUDIO:
+              return "🎵 Sent an audio";
+            case AttachmentType.DOCUMENT:
+              return `📄 Sent a file: ${attachment.name}`;
+            default:
+              return "📎 Sent a file";
+          }
+        }
+        return "📎 Sent a file";
+      case MessageType.SYSTEM:
+        return message.content;
+      default:
+        return message.content;
+    }
+  }
 
   async createConversation(
     data: CreateConversationData
@@ -325,7 +356,6 @@ export class ChatService implements IChatService {
   }
 
   async sendMessage(data: SendMessageData): Promise<Message> {
-    console.log(data);
     // Verify user is participant
     await this.getConversation(data.conversationId, data.senderId);
 
@@ -340,16 +370,20 @@ export class ChatService implements IChatService {
       }
     }
 
-    // Handle file attachments (simplified)
-    const attachments = data.attachments ? [] : undefined; // TODO: Implement file upload
-
     const message: Message = {
       conversationId: new ObjectId(data.conversationId),
       sender: new ObjectId(data.senderId),
       content: data.content,
       type: data.type,
       replyTo: data.replyTo ? new ObjectId(data.replyTo) : undefined,
-      attachments,
+      attachments: data.attachments?.map((att) => ({
+        _id: new ObjectId(),
+        name: att.name,
+        type: att.type,
+        url: att.url,
+        size: att.size,
+        mimeType: att.mimeType,
+      })),
       isEdited: false,
       isDeleted: false,
       readBy: [],
@@ -359,10 +393,11 @@ export class ChatService implements IChatService {
 
     const created = await this.messageRepository.create(message);
 
-    // Update conversation last activity
+    // Generate last message text and update conversation
+    const lastMessageText = this.generateLastMessageText(created);
     await this.conversationRepository.updateLastActivity(
       data.conversationId,
-      created._id!.toString()
+      lastMessageText
     );
 
     return created;
@@ -423,7 +458,34 @@ export class ChatService implements IChatService {
       });
     }
 
-    return this.messageRepository.update(id, { content });
+    const updatedMessage = await this.messageRepository.update(id, { content });
+
+    // Update last message text if this is the latest message
+    const conversation = await this.conversationRepository.findById(
+      message.conversationId.toString()
+    );
+
+    if (conversation && conversation.lastMessage) {
+      // Check if this is the latest message by comparing timestamps
+      const latestMessages = await this.messageRepository.findByConversation(
+        message.conversationId.toString(),
+        0,
+        1
+      );
+
+      if (
+        latestMessages.length > 0 &&
+        latestMessages[0]._id?.toString() === id
+      ) {
+        const newLastMessageText = this.generateLastMessageText(updatedMessage);
+        await this.conversationRepository.updateLastActivity(
+          message.conversationId.toString(),
+          newLastMessageText
+        );
+      }
+    }
+
+    return updatedMessage;
   }
 
   async deleteMessage(id: string, userId: string): Promise<void> {
