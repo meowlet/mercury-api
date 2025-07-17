@@ -365,4 +365,54 @@ export class ChatWebSocket {
       }
     }, 60000); // Clean up every minute
   }
+
+  // Add method to notify friend request
+  public notifyFriendRequest(userId: string, event: any) {
+    const userConnections = this.connections.get(userId);
+    if (userConnections) {
+      const message = JSON.stringify({
+        type: "friend_request",
+        data: event,
+        timestamp: new Date(),
+      });
+
+      for (const ws of userConnections) {
+        try {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(message);
+          }
+        } catch (error) {
+          console.error(
+            `Failed to send friend request notification to user ${userId}:`,
+            error
+          );
+        }
+      }
+    }
+  }
+
+  // Add method to notify friend request accepted
+  public notifyFriendRequestAccepted(userId: string, event: any) {
+    const userConnections = this.connections.get(userId);
+    if (userConnections) {
+      const message = JSON.stringify({
+        type: "friend_request_accepted",
+        data: event,
+        timestamp: new Date(),
+      });
+
+      for (const ws of userConnections) {
+        try {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(message);
+          }
+        } catch (error) {
+          console.error(
+            `Failed to send friend request accepted notification to user ${userId}:`,
+            error
+          );
+        }
+      }
+    }
+  }
 }

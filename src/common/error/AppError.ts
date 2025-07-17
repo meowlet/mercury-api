@@ -13,6 +13,7 @@ export const ErrorType = {
   CONFLICT: "CONFLICT",
   VALIDATION_ERROR: "VALIDATION_ERROR",
   INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
+  INVALID_REQUEST: "INVALID_REQUEST",
 
   // File upload errors
   INVALID_FILE_TYPE: "INVALID_FILE_TYPE",
@@ -35,6 +36,7 @@ export const errorStatusMap: Record<ErrorType, number> = {
   NOT_FOUND: 404,
   CONFLICT: 409,
   VALIDATION_ERROR: 400,
+  INVALID_REQUEST: 400,
   INTERNAL_SERVER_ERROR: 500,
   INVALID_FILE_TYPE: 400,
   FILE_TOO_LARGE: 413,
@@ -54,6 +56,7 @@ export const defaultErrorMessages: Record<ErrorType, string> = {
   NOT_FOUND: "Not found",
   CONFLICT: "Resource conflict",
   VALIDATION_ERROR: "Validation failed",
+  INVALID_REQUEST: "Invalid request",
   INTERNAL_SERVER_ERROR: "Internal server error",
   INVALID_FILE_TYPE: "Invalid file type",
   FILE_TOO_LARGE: "File size too large",

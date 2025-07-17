@@ -7,6 +7,7 @@ import { ChatWebSocket } from "./ws/ChatWebSocket";
 import { MeController } from "./controller/MeController";
 import { UserController } from "./controller/UserController";
 import { UploadController } from "./controller/UploadController";
+import { FriendshipController } from "./controller/FriendshipController";
 
 export class Router {
   static setup(): Elysia {
@@ -19,6 +20,7 @@ export class Router {
     app.use(this.setupMeRoutes()); // Add me routes
     app.use(this.setupUploadRoutes()); // Add upload routes
     app.use(this.setupChatWebSocket()); // Add WebSocket
+    app.use(this.setupFriendshipRoutes()); // Add friendship routes
 
     return app;
   }
@@ -61,5 +63,12 @@ export class Router {
       DIToken.UPLOAD_CONTROLLER
     );
     return uploadController.routes();
+  }
+
+  private static setupFriendshipRoutes() {
+    const friendshipController = container.resolve<FriendshipController>(
+      DIToken.FRIENDSHIP_CONTROLLER
+    );
+    return friendshipController.routes();
   }
 }

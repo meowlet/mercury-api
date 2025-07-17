@@ -6,7 +6,7 @@ export interface User {
   email: string;
   password?: string;
   fullName?: string;
-  avatar?: string; // URL hoặc path đến avatar
+  avatar?: string;
   isPremium: boolean;
   premiumExpiryDate?: Date;
   role?: ObjectId | Role | string;
@@ -46,4 +46,20 @@ export enum Action {
   READ = "read",
   UPDATE = "update",
   DELETE = "delete",
+}
+
+export interface Friendship {
+  _id?: ObjectId | string;
+  requester: ObjectId | string;
+  addressee: ObjectId | string;
+  status: FriendshipStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum FriendshipStatus {
+  PENDING = "pending",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
+  BLOCKED = "blocked",
 }
