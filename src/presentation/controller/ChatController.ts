@@ -15,13 +15,13 @@ import { ErrorType } from "../../common/error/AppError";
 const ChatModels = new Elysia().model({
   createConversation: t.Object({
     participants: t.Array(t.String(), { minItems: 2, maxItems: 100 }),
-    title: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
-    description: t.Optional(t.String({ maxLength: 500 })),
+    title: t.Optional(t.String({ maxLength: 100, default: "" })),
+    description: t.Optional(t.String({ maxLength: 500, default: "" })),
   }),
 
   updateConversation: t.Object({
-    title: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
-    description: t.Optional(t.String({ maxLength: 500 })),
+    title: t.Optional(t.String({ maxLength: 100, default: "" })),
+    description: t.Optional(t.String({ maxLength: 500, default: "" })),
   }),
 
   sendMessage: t.Object({

@@ -13,4 +13,10 @@ export interface IFriendshipRepository {
   getPendingRequestsByUserId(userId: string): Promise<Friendship[]>;
   getSentRequestsByUserId(userId: string): Promise<Friendship[]>;
   searchUsers(query: string, currentUserId: string): Promise<User[]>;
+  getFriendshipByUsers(
+    userId: string,
+    friendId: string
+  ): Promise<Friendship | null>;
+  // Add new method
+  getBlockedUsersByUserId(userId: string): Promise<User[]>;
 }

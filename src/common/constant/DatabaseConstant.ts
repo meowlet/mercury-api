@@ -18,4 +18,7 @@ export class DatabaseConstant {
   public static readonly CONVERSATION_COLLECTION = "conversations";
   public static readonly MESSAGE_COLLECTION = "messages";
   static CONVERSATION_MEMBER_COLLECTION = "conversation_members";
+
+  // Payment collection
+  public static readonly PAYMENT_COLLECTION = "payments";
 }

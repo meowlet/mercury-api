@@ -114,6 +114,11 @@ export class FriendshipRepository implements IFriendshipRepository {
         $unwind: "$friend",
       },
       {
+        $addFields: {
+          "friend.friendshipId": "$_id",
+        },
+      },
+      {
         $replaceRoot: { newRoot: "$friend" },
       },
     ];
@@ -214,5 +219,73 @@ export class FriendshipRepository implements IFriendshipRepository {
       .toArray();
 
     return users as User[];
+  }
+
+  async getFriendshipByUsers(
+    userId: string,
+    friendId: string
+  ): Promise<Friendship | null> {
+    const friendship = await this.db.collection("friendships").findOne({
+      $or: [
+        {
+          requester: new ObjectId(userId),
+          addressee: new ObjectId(friendId),
+        },
+        {
+          requester: new ObjectId(friendId),
+          addressee: new ObjectId(userId),
+        },
+      ],
+      status: FriendshipStatus.ACCEPTED,
+    });
+
+    return friendship as Friendship | null;
+  }
+
+  async getBlockedUsersByUserId(userId: string): Promise<User[]> {
+    const pipeline = [
+      {
+        $match: {
+          requester: new ObjectId(userId),
+          status: FriendshipStatus.BLOCKED,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "addressee",
+          foreignField: "_id",
+          as: "blockedUser",
+          pipeline: [
+            {
+              $project: {
+                password: 0,
+                refreshToken: 0,
+                resetPasswordToken: 0,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: "$blockedUser",
+      },
+      {
+        $addFields: {
+          "blockedUser.friendshipId": "$_id",
+          "blockedUser.blockedAt": "$createdAt",
+        },
+      },
+      {
+        $replaceRoot: { newRoot: "$blockedUser" },
+      },
+    ];
+
+    const blockedUsers = await this.db
+      .collection("friendships")
+      .aggregate(pipeline)
+      .toArray();
+
+    return blockedUsers as User[];
   }
 }

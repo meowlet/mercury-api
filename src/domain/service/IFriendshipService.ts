@@ -8,7 +8,7 @@ export interface IFriendshipService {
   acceptFriendRequest(requestId: string, userId: string): Promise<Friendship>;
   rejectFriendRequest(requestId: string, userId: string): Promise<Friendship>;
   cancelFriendRequest(requestId: string, userId: string): Promise<void>;
-  removeFriend(friendshipId: string, userId: string): Promise<void>;
+  removeFriend(userId: string, friendId: string): Promise<void>; // Changed signature
   blockUser(userId: string, targetUserId: string): Promise<Friendship>;
   unblockUser(userId: string, targetUserId: string): Promise<void>;
   getFriends(userId: string): Promise<User[]>;
@@ -19,4 +19,5 @@ export interface IFriendshipService {
     targetUserId: string
   ): Promise<FriendshipStatus | null>;
   searchUsers(query: string, currentUserId: string): Promise<User[]>;
+  getBlockedUsers(userId: string): Promise<User[]>; // Add new method
 }

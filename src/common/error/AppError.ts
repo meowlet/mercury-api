@@ -15,6 +15,9 @@ export const ErrorType = {
   INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
   INVALID_REQUEST: "INVALID_REQUEST",
 
+  // Payment errors
+  PAYMENT_GATEWAY_ERROR: "PAYMENT_GATEWAY_ERROR",
+
   // File upload errors
   INVALID_FILE_TYPE: "INVALID_FILE_TYPE",
   FILE_TOO_LARGE: "FILE_TOO_LARGE",
@@ -38,6 +41,7 @@ export const errorStatusMap: Record<ErrorType, number> = {
   VALIDATION_ERROR: 400,
   INVALID_REQUEST: 400,
   INTERNAL_SERVER_ERROR: 500,
+  PAYMENT_GATEWAY_ERROR: 502,
   INVALID_FILE_TYPE: 400,
   FILE_TOO_LARGE: 413,
   FILE_UPLOAD_FAILED: 500,
@@ -58,6 +62,7 @@ export const defaultErrorMessages: Record<ErrorType, string> = {
   VALIDATION_ERROR: "Validation failed",
   INVALID_REQUEST: "Invalid request",
   INTERNAL_SERVER_ERROR: "Internal server error",
+  PAYMENT_GATEWAY_ERROR: "Payment gateway error",
   INVALID_FILE_TYPE: "Invalid file type",
   FILE_TOO_LARGE: "File size too large",
   FILE_UPLOAD_FAILED: "File upload failed",

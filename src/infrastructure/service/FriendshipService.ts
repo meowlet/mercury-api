@@ -133,6 +133,10 @@ export class FriendshipService implements IFriendshipService {
     await this.friendshipRepository.delete(requestId);
   }
 
+  async getBlockedUsers(userId: string): Promise<User[]> {
+    return await this.friendshipRepository.getBlockedUsersByUserId(userId);
+  }
+
   async removeFriend(friendshipId: string, userId: string): Promise<void> {
     console.log(friendshipId, userId);
     const friendship = await this.friendshipRepository.findById(friendshipId);

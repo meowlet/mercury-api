@@ -12,9 +12,10 @@ export class FriendshipController {
       .get("/friends", async ({ userId }) => {
         const friends = await this.friendshipService.getFriends(userId);
         return ResponseFormatter.success({
-          friends: friends.map((friend) =>
-            ResponseFormatter.formatUserResponse(friend)
-          ),
+          friends: friends.map((friend) => ({
+            ...ResponseFormatter.formatUserResponse(friend),
+            friendshipId: friend.friendshipId,
+          })),
           message: "Friends retrieved successfully",
         });
       })
@@ -34,6 +35,20 @@ export class FriendshipController {
         return ResponseFormatter.success({
           requests,
           message: "Sent requests retrieved successfully",
+        });
+      })
+
+      .get("/friends/blocked", async ({ userId }) => {
+        const blockedUsers = await this.friendshipService.getBlockedUsers(
+          userId
+        );
+        return ResponseFormatter.success({
+          blockedUsers: blockedUsers.map((user) => ({
+            ...ResponseFormatter.formatUserResponse(user),
+            friendshipId: user.friendshipId,
+            blockedAt: user.blockedAt,
+          })),
+          message: "Blocked users retrieved successfully",
         });
       })
 
@@ -114,8 +129,8 @@ export class FriendshipController {
         });
       })
 
-      .delete("/friends/:id", async ({ params, userId }) => {
-        await this.friendshipService.removeFriend(params.id, userId);
+      .delete("/friends/:friendId", async ({ params, userId }) => {
+        await this.friendshipService.removeFriend(params.friendId, userId);
         return ResponseFormatter.success({
           message: "Friend removed successfully",
         });

@@ -18,6 +18,9 @@ export interface User {
   lastSeen?: Date;
   createdAt: Date;
   updatedAt: Date;
+  // Add these fields for friendship context
+  friendshipId?: string;
+  blockedAt?: Date; // For blocked users list
 }
 
 export interface Role {

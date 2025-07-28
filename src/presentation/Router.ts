@@ -8,6 +8,8 @@ import { MeController } from "./controller/MeController";
 import { UserController } from "./controller/UserController";
 import { UploadController } from "./controller/UploadController";
 import { FriendshipController } from "./controller/FriendshipController";
+import { PaymentController } from "./controller/PaymentController";
+import { PaymentWebhookController } from "./controller/PaymentWebhookController";
 
 export class Router {
   static setup(): Elysia {
@@ -21,6 +23,8 @@ export class Router {
     app.use(this.setupUploadRoutes()); // Add upload routes
     app.use(this.setupChatWebSocket()); // Add WebSocket
     app.use(this.setupFriendshipRoutes()); // Add friendship routes
+    app.use(this.setupPaymentRoutes()); // Add payment routes
+    app.use(PaymentWebhookController); // Add payment webhooks
 
     return app;
   }
@@ -70,5 +74,12 @@ export class Router {
       DIToken.FRIENDSHIP_CONTROLLER
     );
     return friendshipController.routes();
+  }
+
+  private static setupPaymentRoutes() {
+    const paymentController = container.resolve<PaymentController>(
+      DIToken.PAYMENT_CONTROLLER
+    );
+    return paymentController.routes();
   }
 }

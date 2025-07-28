@@ -11,6 +11,7 @@ import { EmailRepository } from "../infrastructure/repository/EmailRepository";
 import { ConversationRepository } from "../infrastructure/repository/ConversationRepository";
 import { MessageRepository } from "../infrastructure/repository/MessageRepository";
 import { FriendshipRepository } from "../infrastructure/repository/FriendshipRepository";
+import { PaymentRepository } from "../infrastructure/repository/PaymentRepository";
 
 // Services
 import { AuthService } from "../infrastructure/service/AuthService";
@@ -18,12 +19,14 @@ import { UserService } from "../infrastructure/service/UserService";
 import { EmailService } from "../infrastructure/service/EmailService";
 import { FileUploadService } from "../infrastructure/service/FileUploadService";
 import { FriendshipService } from "../infrastructure/service/FriendshipService";
+import { PaymentService } from "../infrastructure/service/PaymentService";
 
 // Controllers
 import { AuthController } from "../presentation/controller/AuthController";
 import { UserController } from "../presentation/controller/UserController";
 import { UploadController } from "../presentation/controller/UploadController";
 import { FriendshipController } from "../presentation/controller/FriendshipController";
+import { PaymentController } from "../presentation/controller/PaymentController";
 import { RoleService } from "../infrastructure/service/RoleService";
 import { ChatController } from "../presentation/controller/ChatController";
 import { ChatWebSocket } from "../presentation/ws/ChatWebSocket";
@@ -75,6 +78,13 @@ class Container extends DIContainer {
       DIToken.FRIENDSHIP_REPOSITORY,
       (database: MongoDatabase) =>
         new FriendshipRepository(database.getDatabase()),
+      { dependencies: [DIToken.DATABASE] }
+    );
+
+    this.register(
+      DIToken.PAYMENT_REPOSITORY,
+      (database: MongoDatabase) =>
+        new PaymentRepository(database.getDatabase()),
       { dependencies: [DIToken.DATABASE] }
     );
 
@@ -136,6 +146,15 @@ class Container extends DIContainer {
       }
     );
 
+    this.register(
+      DIToken.PAYMENT_SERVICE,
+      (paymentRepo: any, userRepo: any) =>
+        new PaymentService(paymentRepo, userRepo),
+      {
+        dependencies: [DIToken.PAYMENT_REPOSITORY, DIToken.USER_REPOSITORY],
+      }
+    );
+
     // File Upload Service
     this.registerClass(DIToken.FILE_UPLOAD_SERVICE, FileUploadService);
 
@@ -174,6 +193,12 @@ class Container extends DIContainer {
       DIToken.FRIENDSHIP_CONTROLLER,
       (friendshipService: any) => new FriendshipController(friendshipService),
       { dependencies: [DIToken.FRIENDSHIP_SERVICE] }
+    );
+
+    this.register(
+      DIToken.PAYMENT_CONTROLLER,
+      (paymentService: any) => new PaymentController(paymentService),
+      { dependencies: [DIToken.PAYMENT_SERVICE] }
     );
 
     // Chat WebSocket
