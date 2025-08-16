@@ -62,6 +62,48 @@ const authModels = new Elysia().model({
         "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number",
     }),
   }),
+
+  forgotPasswordOtp: t.Object({
+    email: t.String({
+      minLength: AuthConstant.EMAIL_MIN_LENGTH,
+      maxLength: AuthConstant.EMAIL_MAX_LENGTH,
+      format: "email",
+      error: "Invalid email format",
+    }),
+  }),
+
+  verifyOtp: t.Object({
+    email: t.String({
+      format: "email",
+      error: "Invalid email format",
+    }),
+    otp: t.String({
+      minLength: 6,
+      maxLength: 6,
+      pattern: "^[0-9]{6}$",
+      error: "OTP must be a 6-digit number",
+    }),
+  }),
+
+  resetPasswordOtp: t.Object({
+    email: t.String({
+      format: "email",
+      error: "Invalid email format",
+    }),
+    otp: t.String({
+      minLength: 6,
+      maxLength: 6,
+      pattern: "^[0-9]{6}$",
+      error: "OTP must be a 6-digit number",
+    }),
+    newPassword: t.String({
+      minLength: AuthConstant.PASSWORD_MIN_LENGTH,
+      maxLength: AuthConstant.PASSWORD_MAX_LENGTH,
+      pattern: AuthConstant.PASSWORD_PATTERN,
+      error:
+        "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number",
+    }),
+  }),
 });
 
 export class AuthController {
@@ -169,6 +211,52 @@ export class AuthController {
           );
         },
         { body: "resetPassword" }
+      )
+      .post(
+        "/forgot-password-otp",
+        async ({ body }) => {
+          const { email } = body;
+          await this.authService.generateResetOtp(email);
+
+          return ResponseFormatter.success(
+            null,
+            "If your email exists in our system, you will receive a 6-digit OTP code"
+          );
+        },
+        { body: "forgotPasswordOtp" }
+      )
+      .post(
+        "/verify-otp",
+        async ({ body }) => {
+          const { email, otp } = body;
+          const isValid = await this.authService.verifyResetOtp(email, otp);
+
+          if (!isValid) {
+            return ResponseFormatter.error(
+              "Invalid or expired OTP",
+              "INVALID_OTP"
+            );
+          }
+
+          return ResponseFormatter.success(
+            { isValid: true },
+            "OTP verified successfully"
+          );
+        },
+        { body: "verifyOtp" }
+      )
+      .post(
+        "/reset-password-otp",
+        async ({ body }) => {
+          const { email, otp, newPassword } = body;
+          await this.authService.resetPasswordWithOtp(email, otp, newPassword);
+
+          return ResponseFormatter.success(
+            null,
+            "Password has been reset successfully"
+          );
+        },
+        { body: "resetPasswordOtp" }
       )
       .post("/sign-out", async ({ headers, cookie }) => {
         // Get user ID from token

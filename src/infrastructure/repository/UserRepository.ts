@@ -52,6 +52,12 @@ export class UserRepository implements IUserRepository {
       .findOne({ resetPasswordToken: token });
   }
 
+  async findByResetOtp(otp: string): Promise<User | null> {
+    return this.db
+      .collection<User>(DatabaseConstant.USER_COLLECTION)
+      .findOne({ resetPasswordOtp: otp });
+  }
+
   async findByStatus(isOnline: boolean): Promise<User[]> {
     return this.db
       .collection<User>(DatabaseConstant.USER_COLLECTION)

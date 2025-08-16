@@ -20,4 +20,11 @@ export interface IAuthService {
   verifyToken(token: string): Promise<TokenPayload | null>;
   generateResetToken(email: string): Promise<string>;
   resetPassword(token: string, newPassword: string): Promise<void>;
+  generateResetOtp(email: string): Promise<void>;
+  verifyResetOtp(email: string, otp: string): Promise<boolean>;
+  resetPasswordWithOtp(
+    email: string,
+    otp: string,
+    newPassword: string
+  ): Promise<void>;
 }

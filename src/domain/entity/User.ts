@@ -14,6 +14,8 @@ export interface User {
   refreshToken?: string;
   resetPasswordToken?: string;
   resetPasswordExpiry?: Date;
+  resetPasswordOtp?: string;
+  resetPasswordOtpExpiry?: Date;
   isOnline?: boolean;
   lastSeen?: Date;
   createdAt: Date;

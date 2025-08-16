@@ -263,6 +263,78 @@ export class AuthService implements IAuthService {
     });
   }
 
+  async generateResetOtp(email: string): Promise<void> {
+    const user = await this.userRepository.findByEmail(email);
+
+    if (!user) {
+      // Don't reveal whether the email exists or not for security
+      return;
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Save OTP to user
+    await this.userRepository.update(user._id!.toString(), {
+      resetPasswordOtp: otp,
+      resetPasswordOtpExpiry: otpExpiry,
+    });
+
+    // Send OTP email
+    await this.emailService.sendPasswordResetOtp(email, otp);
+  }
+
+  async verifyResetOtp(email: string, otp: string): Promise<boolean> {
+    const user = await this.userRepository.findByEmail(email);
+
+    if (!user) {
+      return false;
+    }
+
+    // Check OTP and expiry
+    if (
+      user.resetPasswordOtp !== otp ||
+      !user.resetPasswordOtpExpiry ||
+      user.resetPasswordOtpExpiry < new Date()
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  async resetPasswordWithOtp(
+    email: string,
+    otp: string,
+    newPassword: string
+  ): Promise<void> {
+    const user = await this.userRepository.findByEmail(email);
+
+    if (!user) {
+      throwError(ErrorType.USER_NOT_FOUND);
+    }
+
+    // Verify OTP
+    if (
+      user.resetPasswordOtp !== otp ||
+      !user.resetPasswordOtpExpiry ||
+      user.resetPasswordOtpExpiry < new Date()
+    ) {
+      throwErrorWithMessage(ErrorType.INVALID_TOKEN, "Invalid or expired OTP");
+    }
+
+    // Hash new password
+    const hashedPassword = await Bun.password.hash(newPassword);
+
+    // Update password and clear OTP
+    await this.userRepository.update(user._id!.toString(), {
+      password: hashedPassword,
+      resetPasswordOtp: undefined,
+      resetPasswordOtpExpiry: undefined,
+    });
+  }
+
   // Helper methods
   private generateAccessToken(userId: string): string {
     return sign({ sub: userId }, AuthConstant.JWT_SECRET, {
